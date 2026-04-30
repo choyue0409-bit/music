@@ -16,14 +16,15 @@ export default function MediaViewer({ media, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(42,36,25,0.92)' }}
       onClick={onClose}
     >
       <button
-        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl"
+        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-ink-950/10 hover:bg-ink-950/20 text-ink-950 text-2xl font-display"
         onClick={onClose}
       >
-        ✕
+        ×
       </button>
       {url && (
         isVideo ? (
