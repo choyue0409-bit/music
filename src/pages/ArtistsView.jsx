@@ -4,6 +4,8 @@ import { listConcerts } from '../db.js'
 import MediaThumb from '../components/MediaThumb.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 
+const TILTS = ['rotate-[-1.5deg]', 'rotate-[1deg]', 'rotate-[-0.5deg]', 'rotate-[1.5deg]', 'rotate-[-1deg]']
+
 export default function ArtistsView() {
   const concerts = listConcerts()
 
@@ -28,30 +30,38 @@ export default function ArtistsView() {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-      {artists.map((a) => (
-        <Link
-          key={a.name}
-          to={`/timeline?artist=${encodeURIComponent(a.name)}`}
-          className="group rounded-2xl overflow-hidden bg-ink-900 border border-ink-800 hover:border-accent transition-colors"
-        >
-          <div className="aspect-square">
-            {a.cover ? (
-              <MediaThumb media={a.cover} className="w-full h-full" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-ink-800 to-ink-900 flex items-center justify-center text-4xl">
-                🎵
-              </div>
-            )}
-          </div>
-          <div className="p-3">
-            <div className="font-medium truncate">{a.name}</div>
-            <div className="text-xs text-ink-300 mt-0.5">
-              {a.list.length} 场
+    <div className="space-y-6">
+      <div className="flex items-baseline justify-between">
+        <h1 className="font-display text-3xl text-ink-100">歌手</h1>
+        <span className="font-display italic text-sm text-ink-500">
+          {artists.length} artists · {concerts.length} shows
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-8 pt-2">
+        {artists.map((a, i) => (
+          <Link
+            key={a.name}
+            to={`/timeline?artist=${encodeURIComponent(a.name)}`}
+            className={`group block bg-[#fffdf7] p-2.5 pb-4 shadow-polaroid hover:-translate-y-0.5 hover:shadow-lg transition-all ${TILTS[i % TILTS.length]}`}
+          >
+            <div className="aspect-square bg-ink-800 overflow-hidden">
+              {a.cover ? (
+                <MediaThumb media={a.cover} className="w-full h-full" />
+              ) : (
+                <div className="w-full h-full bg-ink-900 flex items-center justify-center font-display italic text-3xl text-ink-500">
+                  ♪
+                </div>
+              )}
             </div>
-          </div>
-        </Link>
-      ))}
+            <div className="pt-3 px-1 text-center">
+              <div className="font-display italic text-base text-ink-100 truncate">{a.name}</div>
+              <div className="font-serif text-[11px] text-ink-500 mt-0.5 tracking-wider">
+                {a.list.length} {a.list.length === 1 ? 'show' : 'shows'}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }

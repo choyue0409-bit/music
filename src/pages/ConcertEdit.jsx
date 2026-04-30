@@ -96,12 +96,19 @@ export default function ConcertEdit() {
   }
 
   return (
-    <form onSubmit={onSave} className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{isNew ? '新增演出' : '编辑演出'}</h1>
+    <form onSubmit={onSave} className="space-y-7">
+      <div className="flex items-baseline justify-between border-b border-ink-700/60 pb-4">
+        <div>
+          <div className="font-display italic text-xs text-ink-500 tracking-widest uppercase">
+            {isNew ? 'New entry' : 'Edit entry'}
+          </div>
+          <h1 className="font-display text-3xl text-ink-100 mt-1">
+            {isNew ? '新增演出' : '编辑演出'}
+          </h1>
+        </div>
         <button
           type="button"
-          className="text-sm text-ink-300 hover:text-ink-100"
+          className="font-serif italic text-sm text-ink-500 hover:text-accent"
           onClick={() => navigate(-1)}
         >
           取消
@@ -112,7 +119,7 @@ export default function ConcertEdit() {
         <input value={form.artist} onChange={update('artist')} placeholder="例如：周杰伦" required />
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-5">
         <Field label="日期">
           <input type="date" value={form.date} onChange={update('date')} />
         </Field>
@@ -121,7 +128,7 @@ export default function ConcertEdit() {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-5">
         <Field label="城市">
           <input value={form.city} onChange={update('city')} placeholder="例如：上海" />
         </Field>
@@ -134,7 +141,7 @@ export default function ConcertEdit() {
         <input value={form.venue} onChange={update('venue')} placeholder="例如：梅赛德斯-奔驰文化中心" />
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-5">
         <Field label="票价">
           <input value={form.price} onChange={update('price')} placeholder="例如：1280 元" />
         </Field>
@@ -143,7 +150,7 @@ export default function ConcertEdit() {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-5">
         <Field label="纬度（可选）">
           <input value={form.lat} onChange={update('lat')} placeholder="例如 31.18" inputMode="decimal" />
         </Field>
@@ -151,25 +158,30 @@ export default function ConcertEdit() {
           <input value={form.lng} onChange={update('lng')} placeholder="例如 121.59" inputMode="decimal" />
         </Field>
       </div>
-      <p className="text-xs text-ink-500 -mt-3">填了经纬度才能在地图上显示。也可以只填城市。</p>
+      <p className="text-xs text-ink-500 -mt-4 font-serif italic">
+        填了经纬度才能在地图上显示。也可以只填城市。
+      </p>
 
       <Field label="当天的回忆">
         <textarea
-          rows={5}
+          rows={6}
           value={form.notes}
           onChange={update('notes')}
           placeholder="想到啥写啥：开场曲、安可、感受、有趣的小插曲……"
+          className="!leading-loose"
         />
       </Field>
 
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-ink-300">照片 / 视频 / 票根</span>
+      <div className="space-y-3">
+        <div className="flex items-baseline justify-between">
+          <div className="text-[11px] text-ink-500 uppercase tracking-widest font-sans">
+            照片 / 视频 / 票根
+          </div>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={busy}
-            className="text-sm px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 border border-ink-700"
+            className="text-sm font-serif italic text-accent hover:underline disabled:opacity-50"
           >
             {busy ? '上传中…' : '+ 添加文件'}
           </button>
@@ -183,22 +195,26 @@ export default function ConcertEdit() {
           />
         </div>
         {form.media?.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3">
             {form.media.map((m) => (
-              <div key={m.id} className="relative">
-                <MediaThumb media={m} className="w-full aspect-square rounded-lg" />
-                <div className="absolute inset-x-0 bottom-0 flex gap-1 p-1 bg-gradient-to-t from-black/80 to-transparent">
+              <div key={m.id} className="relative bg-[#fffdf7] p-1.5 pb-2 shadow-polaroid">
+                <MediaThumb media={m} className="w-full aspect-square" />
+                <div className="flex gap-1 mt-1.5">
                   <button
                     type="button"
                     onClick={() => toggleTicket(m)}
-                    className={`text-[10px] px-1.5 py-0.5 rounded ${m.isTicket ? 'bg-accent text-white' : 'bg-white/20 text-white'}`}
+                    className={`text-[10px] px-1.5 py-0.5 font-serif italic ${
+                      m.isTicket
+                        ? 'bg-accent text-ink-950'
+                        : 'border border-ink-700 text-ink-500 hover:border-accent hover:text-accent'
+                    }`}
                   >
                     {m.isTicket ? '✓ 票根' : '设为票根'}
                   </button>
                   <button
                     type="button"
                     onClick={() => onRemoveMedia(m)}
-                    className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-red-500/80 text-white"
+                    className="ml-auto text-[10px] px-1.5 py-0.5 font-serif italic text-accent hover:underline"
                   >
                     删
                   </button>
@@ -207,24 +223,24 @@ export default function ConcertEdit() {
             ))}
           </div>
         ) : (
-          <div className="text-sm text-ink-500 py-6 text-center border border-dashed border-ink-700 rounded-xl">
+          <div className="text-sm text-ink-500 py-8 text-center border border-dashed border-ink-700 font-serif italic">
             还没有添加文件
           </div>
         )}
       </div>
 
-      <div className="flex gap-3 pt-4">
+      <div className="flex gap-3 pt-6 border-t border-ink-700/60">
         <button
           type="submit"
-          className="flex-1 py-3 rounded-full bg-gradient-to-br from-accent to-accent-violet text-white font-medium"
+          className="flex-1 py-3 bg-accent text-ink-950 font-display tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
         >
-          保存
+          盖章保存
         </button>
         {!isNew && (
           <button
             type="button"
             onClick={onDelete}
-            className="px-5 py-3 rounded-full bg-ink-800 border border-ink-700 text-red-400 hover:text-red-300"
+            className="px-5 py-3 border border-ink-700 text-ink-500 font-serif italic hover:text-accent hover:border-accent transition-colors"
           >
             删除
           </button>
@@ -237,7 +253,9 @@ export default function ConcertEdit() {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="block text-sm text-ink-300 mb-1.5">{label}</span>
+      <span className="block text-[11px] text-ink-500 uppercase tracking-widest font-sans mb-1.5">
+        {label}
+      </span>
       {children}
     </label>
   )
@@ -252,7 +270,7 @@ function StarPicker({ value, onChange }) {
           key={n}
           type="button"
           onClick={() => onChange(n === v ? 0 : n)}
-          className={`text-2xl ${n <= v ? 'text-amber-400' : 'text-ink-700 hover:text-ink-500'}`}
+          className={`text-2xl transition-colors ${n <= v ? 'text-accent' : 'text-ink-700 hover:text-ink-500'}`}
           aria-label={`${n} 星`}
         >
           ★
