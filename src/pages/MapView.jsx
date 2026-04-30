@@ -40,7 +40,7 @@ export default function MapView() {
         <MapContainer center={center} zoom={points.length ? 4 : 3} className="h-full w-full">
           <TileLayer
             attribution='&copy; OpenStreetMap'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
           {points.map((c) => (
             <Marker key={c.id} position={[c.lat, c.lng]} icon={icon}>
