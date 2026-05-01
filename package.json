@@ -1,5 +1,5 @@
 {
-  "name": "live-memory",
+  "name": "iwasthere",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,17 +10,11 @@
   },
   "dependencies": {
     "idb-keyval": "^6.2.1",
-    "leaflet": "^1.9.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-leaflet": "^4.2.1",
-    "react-router-dom": "^6.26.2"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.13",
     "vite": "^5.4.8"
   }
 }
