@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>iwasthere — a private journal of shows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Anton&family=Caveat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    background: #1A1814;
+    background-image:
+      radial-gradient(ellipse at top, #2A2620 0%, #1A1814 60%, #0E0C09 100%);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    color: #F2EBD9;
+  }
+  * { box-sizing: border-box; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="design-system.jsx"></script>
+<script type="text/babel" src="stub.jsx"></script>
+<script type="text/babel" src="screens.jsx"></script>
+
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "themeName": "cream",
+  "stubVariant": "minimal",
+  "lang": "zh",
+  "primaryStamp": "#6576b8",
+  "fontStyle": "typewriter",
+  "customPaperBg": ""
+}/*EDITMODE-END*/;
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  // theme — derived from themeName, with optional overrides
+  const baseTheme = THEMES[t.themeName] || THEMES.cream;
+  const theme = {
+    ...baseTheme,
+    stamp: t.primaryStamp || baseTheme.stamp,
+    accent: t.primaryStamp || baseTheme.accent,
+    ...(t.customPaperBg ? { paperBg: t.customPaperBg, appBg: t.customPaperBg } : {}),
+  };
+
+  // bilingual tweak labels
+  const L = t.lang === 'zh' ? {
+    theme: '主题', palette: '配色', stampInk: '印章颜色', paperBg: '纸张底色',
+    stubStyle: '票根样式', variant: '样式',
+    classic: '经典', bold: '粗黑', minimal: '极简',
+    type: '字体', fontSet: '字体组合',
+    editorial: '编辑体', sans: '无衬线', typewriter: '打字机',
+    language: '语言', lang: '语言',
+    reset: '重置', resetAll: '↺ 恢复默认设置',
+    ivory: '象牙白', cream: '米黄', rose: '玫瑰', slate: '冷灰', noir: '深夜',
+  } : {
+    theme: 'Theme', palette: 'Palette', stampInk: 'Stamp ink', paperBg: 'Paper bg',
+    stubStyle: 'Stub style', variant: 'Variant',
+    classic: 'Classic', bold: 'Bold', minimal: 'Minimal',
+    type: 'Type', fontSet: 'Font set',
+    editorial: 'Editorial', sans: 'Sans', typewriter: 'Typewriter',
+    language: 'Language', lang: 'Language',
+    reset: 'Reset', resetAll: '↺ Reset all',
+    ivory: 'Ivory', cream: 'Cream', rose: 'Rose', slate: 'Slate', noir: 'Noir',
+  };
+
+  // font preset
+  const fontPresets = {
+    editorial: { ...FONTS },
+    sans: { ...FONTS, serif: FONTS.sans, condensed: "'Inter Tight', sans-serif" },
+    typewriter: { ...FONTS, serif: FONTS.mono, condensed: FONTS.mono, sans: FONTS.mono },
+  };
+  const F = fontPresets[t.fontStyle] || fontPresets.editorial;
+  // patch global FONTS so children read consistent values
+  Object.assign(FONTS, F);
+
+  // active screens for the two displayed phones
+  const [leftScreen, setLeftScreen] = React.useState('home');
+  const [rightScreen, setRightScreen] = React.useState('detail');
+  const [openId, setOpenId] = React.useState(SHOWS[0].id);
+
+  // helper to render a phone with one of the screens
+  const renderPhone = (which, screenName, label) => {
+    let inner = null;
+    if (screenName === 'home') {
+      inner = <HomeScreen theme={theme} lang={t.lang} variant={t.stubVariant}
+                          onOpen={(id) => { setOpenId(id); setRightScreen('detail'); }}/>;
+    } else if (screenName === 'detail') {
+      inner = <DetailScreen theme={theme} lang={t.lang} variant={t.stubVariant}
+                             showId={openId} onBack={() => setRightScreen('home')}/>;
+    } else if (screenName === 'add') {
+      inner = <AddScreen theme={theme} lang={t.lang} onClose={() => {}}/>;
+    } else if (screenName === 'me') {
+      inner = <MeScreen theme={theme} lang={t.lang}/>;
+    } else if (screenName === 'search') {
+      inner = <SearchScreen theme={theme} lang={t.lang}/>;
+    }
+    const setScreen = which === 'L' ? setLeftScreen : setRightScreen;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+        <div data-screen-label={`${which === 'L' ? '01' : '02'} ${screenName}`} style={{ position: 'relative' }}>
+          <IOSDevice width={390} height={844} dark={theme.dark}>
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: theme.appBg,
+              backgroundImage: `${paperTextureUrl(0.55, theme.paperHue)}, ${foxingUrl(0.045)}`,
+              backgroundBlendMode: 'multiply, multiply',
+            }}/>
+            <div style={{ position: 'relative', height: '100%', overflow: 'auto', overflowX: 'hidden' }}>
+              {inner}
+            </div>
+            <TabBar
+              active={screenName === 'detail' ? 'home' : screenName}
+              onTab={(id) => setScreen(id)}
+              theme={theme}
+              lang={t.lang}
+            />
+          </IOSDevice>
+        </div>
+        {/* screen switcher under each phone */}
+        <div style={{ display: 'flex', gap: 4, padding: '6px 8px', borderRadius: 999,
+          background: 'rgba(242,235,217,0.08)', border: '0.5px solid rgba(242,235,217,0.12)' }}>
+          {['home','detail','add','search','me'].map((s) => (
+            <button key={s}
+              onClick={() => setScreen(s)}
+              style={{
+                background: screenName === s ? '#F2EBD9' : 'transparent',
+                color: screenName === s ? '#1A1814' : 'rgba(242,235,217,0.6)',
+                border: 'none', cursor: 'pointer',
+                padding: '5px 10px', borderRadius: 999,
+                fontFamily: "'JetBrains Mono', monospace", fontSize: 9,
+                letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 600,
+              }}>
+              {s}
+            </button>
+          ))}
+        </div>
+        <div style={{
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+          letterSpacing: 1.5, textTransform: 'uppercase',
+          color: 'rgba(242,235,217,0.4)',
+        }}>{label}</div>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Page header */}
+      <div style={{
+        padding: '40px 40px 24px',
+        borderBottom: '0.5px solid rgba(242,235,217,0.12)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 16,
+      }}>
+        <div>
+          <div style={{
+            fontFamily: "'JetBrains Mono', monospace", fontSize: 11,
+            letterSpacing: 2, textTransform: 'uppercase',
+            color: 'rgba(242,235,217,0.5)', marginBottom: 8,
+          }}>iOS · Android · v0.1 hi-fi</div>
+          <div style={{
+            fontFamily: "'DM Serif Display', serif", fontSize: 80,
+            fontWeight: 400, lineHeight: 0.95, letterSpacing: -2,
+            fontStyle: 'italic',
+          }}>iwasthere<span style={{ color: '#A53224', fontStyle: 'normal' }}>.</span></div>
+          <div style={{
+            fontFamily: "'DM Serif Display', serif", fontStyle: 'italic',
+            fontSize: 18, color: 'rgba(242,235,217,0.7)', marginTop: 10,
+          }}>a private journal of the shows you've been to. <span style={{ opacity: 0.6 }}>(formerly "票根")</span></div>
+        </div>
+        <div style={{
+          display: 'flex', gap: 24, alignItems: 'flex-end',
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+          letterSpacing: 1.5, textTransform: 'uppercase',
+          color: 'rgba(242,235,217,0.5)',
+        }}>
+          <div><div style={{ color: '#F2EBD9', fontSize: 22, fontFamily: "'Anton', sans-serif", letterSpacing: 0 }}>5</div>screens</div>
+          <div><div style={{ color: '#F2EBD9', fontSize: 22, fontFamily: "'Anton', sans-serif", letterSpacing: 0 }}>3</div>variants</div>
+          <div><div style={{ color: '#F2EBD9', fontSize: 22, fontFamily: "'Anton', sans-serif", letterSpacing: 0 }}>4</div>themes</div>
+        </div>
+      </div>
+
+      {/* Two phones side by side */}
+      <div style={{
+        flex: 1, display: 'flex', justifyContent: 'center',
+        gap: 48, padding: '40px 24px 32px', flexWrap: 'wrap',
+      }}>
+        {renderPhone('L', leftScreen, '主屏 / Primary')}
+        {renderPhone('R', rightScreen, '副屏 / Secondary')}
+      </div>
+
+      {/* footer notes */}
+      <div style={{
+        padding: '24px 40px 60px',
+        borderTop: '0.5px solid rgba(242,235,217,0.12)',
+        fontFamily: "'DM Serif Display', serif", fontStyle: 'italic',
+        fontSize: 14, color: 'rgba(242,235,217,0.55)',
+        display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 920,
+      }}>
+        <div>· 点击左屏首页的任意票根 → 右屏会打开详情。</div>
+        <div>· 点开 Tweaks 切换主题、票根样式、语言、字体、印章颜色。</div>
+        <div>· 票根使用米黄纸纤维 + 老化斑痕的纹理；印章用洛阳红，凸现"到场"。</div>
+      </div>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label={L.theme} />
+        <TweakRadio label={L.palette} value={t.themeName}
+          options={[
+            { value: 'ivory', label: L.ivory },
+            { value: 'cream', label: L.cream },
+            { value: 'rose', label: L.rose },
+            { value: 'cool', label: L.slate },
+            { value: 'noir', label: L.noir },
+          ]}
+          onChange={(v) => setTweak({ themeName: v, customPaperBg: '' })} />
+        <TweakColor label={L.paperBg} value={t.customPaperBg || baseTheme.paperBg}
+          onChange={(v) => setTweak('customPaperBg', v)} />
+        <TweakColor label={L.stampInk} value={t.primaryStamp}
+          onChange={(v) => setTweak('primaryStamp', v)} />
+
+        <TweakSection label={L.stubStyle} />
+        <TweakRadio label={L.variant} value={t.stubVariant}
+          options={[
+            { value: 'classic', label: L.classic },
+            { value: 'bold', label: L.bold },
+            { value: 'minimal', label: L.minimal },
+          ]}
+          onChange={(v) => setTweak('stubVariant', v)} />
+
+        <TweakSection label={L.type} />
+        <TweakRadio label={L.fontSet} value={t.fontStyle}
+          options={[
+            { value: 'editorial', label: L.editorial },
+            { value: 'sans', label: L.sans },
+            { value: 'typewriter', label: L.typewriter },
+          ]}
+          onChange={(v) => setTweak('fontStyle', v)} />
+
+        <TweakSection label={L.language} />
+        <TweakRadio label={L.lang} value={t.lang}
+          options={[
+            { value: 'zh', label: '中文' },
+            { value: 'en', label: 'English' },
+          ]}
+          onChange={(v) => setTweak('lang', v)} />
+
+        <TweakSection label={L.reset} />
+        <TweakButton label={L.resetAll}
+          onClick={() => setTweak({
+            themeName: 'cream',
+            stubVariant: 'classic',
+            lang: 'zh',
+            primaryStamp: '#A53224',
+            fontStyle: 'editorial',
+            customPaperBg: '',
+          })} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>
