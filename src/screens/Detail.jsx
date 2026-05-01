@@ -1,13 +1,16 @@
 // Detail — single show with cover, stub, journal, setlist, media.
 
+import { useState } from 'react'
 import { FONTS, STRINGS, parseDate, paperTextureUrl } from '../design.js'
 import { Cover, Stars, Chip } from '../atoms.jsx'
 import { TicketStub } from '../TicketStub.jsx'
+import { ShareModal } from '../share/ShareModal.jsx'
 import { SectionLabel, MetaCell } from './shared.jsx'
 import { SAMPLE_MEDIA, SAMPLE_SETLIST } from '../seed.js'
 
 export function DetailScreen({ theme, lang, variant, show, onBack, onDelete }) {
   const S = STRINGS[lang]
+  const [shareOpen, setShareOpen] = useState(false)
   if (!show) return null
   const dateParts = parseDate(show.date)
   return (
@@ -30,18 +33,35 @@ export function DetailScreen({ theme, lang, variant, show, onBack, onDelete }) {
             <path d="M11 2L3 11l8 9" stroke="#F2EBD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        {onDelete && (
-          <button onClick={onDelete} style={{
-            position: 'absolute', top: 56, right: 16, zIndex: 5,
+        <div style={{
+          position: 'absolute', top: 56, right: 16, zIndex: 5,
+          display: 'flex', gap: 8,
+        }}>
+          <button onClick={() => setShareOpen(true)} style={{
             height: 38, padding: '0 14px', borderRadius: 999,
             background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(20px)',
             border: '0.5px solid rgba(255,255,255,0.2)',
             color: '#F2EBD9', cursor: 'pointer',
             fontFamily: FONTS.mono, fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase',
+            display: 'inline-flex', alignItems: 'center', gap: 6,
           }}>
-            {lang === 'zh' ? '删除' : 'Delete'}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5" stroke="#F2EBD9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {lang === 'zh' ? '分享' : 'Share'}
           </button>
-        )}
+          {onDelete && (
+            <button onClick={onDelete} style={{
+              height: 38, padding: '0 14px', borderRadius: 999,
+              background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(20px)',
+              border: '0.5px solid rgba(255,255,255,0.2)',
+              color: '#F2EBD9', cursor: 'pointer',
+              fontFamily: FONTS.mono, fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase',
+            }}>
+              {lang === 'zh' ? '删除' : 'Delete'}
+            </button>
+          )}
+        </div>
         <div style={{
           position: 'absolute', bottom: 16, left: 16,
           fontFamily: FONTS.mono, fontSize: 11, letterSpacing: 1.5,
@@ -237,6 +257,15 @@ export function DetailScreen({ theme, lang, variant, show, onBack, onDelete }) {
           </button>
         </div>
       </div>
+
+      {shareOpen && (
+        <ShareModal
+          show={show}
+          theme={theme}
+          lang={lang}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </div>
   )
 }
