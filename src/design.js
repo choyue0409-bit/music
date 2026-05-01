@@ -87,11 +87,36 @@ export const THEMES = {
 }
 
 // ── Fonts
+// FONTS is intentionally mutable — App.jsx swaps the values per fontStyle
+// preset (editorial / sans / typewriter) on every render so all components
+// reading FONTS pick up the change.
 export const FONTS = {
   serif: "'DM Serif Display', 'Cormorant Garamond', 'Playfair Display', Georgia, serif",
   sans: "'Inter Tight', 'Söhne', -apple-system, system-ui, sans-serif",
   mono: "'JetBrains Mono', 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace",
   condensed: "'Anton', 'Oswald', 'Bebas Neue', 'Inter Tight', sans-serif",
+}
+
+const FONT_DEFAULTS = { ...FONTS }
+
+export const FONT_PRESETS = {
+  editorial: { ...FONT_DEFAULTS },
+  sans: {
+    ...FONT_DEFAULTS,
+    serif: FONT_DEFAULTS.sans,
+    condensed: "'Inter Tight', sans-serif",
+  },
+  typewriter: {
+    ...FONT_DEFAULTS,
+    serif: FONT_DEFAULTS.mono,
+    condensed: FONT_DEFAULTS.mono,
+    sans: FONT_DEFAULTS.mono,
+  },
+}
+
+export function applyFontPreset(name) {
+  const preset = FONT_PRESETS[name] || FONT_PRESETS.editorial
+  Object.assign(FONTS, preset)
 }
 
 // ── Show types

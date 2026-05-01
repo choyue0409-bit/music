@@ -5,7 +5,7 @@ import { Cover, Stars } from '../atoms.jsx'
 import { ScreenHeader, SectionLabel } from './shared.jsx'
 import { MAP_CITIES, YEAR_BARS } from '../seed.js'
 
-export function MeScreen({ theme, lang, stats, onChangeTheme, currentTheme }) {
+export function MeScreen({ theme, lang, stats, prefs, baseTheme, onUpdatePref, onReset }) {
   const S = STRINGS[lang]
   return (
     <div style={{ paddingBottom: 100 }}>
@@ -103,26 +103,190 @@ export function MeScreen({ theme, lang, stats, onChangeTheme, currentTheme }) {
         </div>
       </div>
 
-      {onChangeTheme && (
-        <div style={{ padding: '8px 20px 30px' }}>
-          <SectionLabel text={lang === 'zh' ? '主题' : 'Theme'} theme={theme}/>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
-            {['cream', 'ivory', 'rose', 'cool', 'noir'].map((t) => {
-              const on = currentTheme === t
-              return (
-                <button key={t} onClick={() => onChangeTheme(t)} style={{
-                  height: 30, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
-                  border: `0.5px solid ${theme.paperLine}`,
-                  background: on ? theme.paperFg : 'transparent',
-                  color: on ? theme.paperBg : theme.paperFg,
-                  fontFamily: FONTS.sans, fontSize: 12, fontWeight: 500,
-                }}>{t}</button>
-              )
-            })}
-          </div>
-        </div>
+      {prefs && onUpdatePref && (
+        <SettingsPanel
+          prefs={prefs} theme={theme} baseTheme={baseTheme} lang={lang}
+          onUpdatePref={onUpdatePref} onReset={onReset}
+        />
       )}
     </div>
+  )
+}
+
+function SettingsPanel({ prefs, theme, baseTheme, lang, onUpdatePref, onReset }) {
+  const L = lang === 'zh' ? {
+    settings: '设置',
+    palette: '配色', stampInk: '印章颜色', paperBg: '纸张底色',
+    stubStyle: '票根样式', classic: '经典', bold: '粗黑', minimal: '极简',
+    fontSet: '字体', editorial: '编辑体', sans: '无衬线', typewriter: '打字机',
+    language: '语言',
+    reset: '↺ 恢复默认',
+    ivory: '象牙白', cream: '米黄', rose: '玫瑰', cool: '冷灰', noir: '深夜',
+  } : {
+    settings: 'Settings',
+    palette: 'Palette', stampInk: 'Stamp ink', paperBg: 'Paper bg',
+    stubStyle: 'Stub style', classic: 'Classic', bold: 'Bold', minimal: 'Minimal',
+    fontSet: 'Type', editorial: 'Editorial', sans: 'Sans', typewriter: 'Typewriter',
+    language: 'Language',
+    reset: '↺ Reset all',
+    ivory: 'Ivory', cream: 'Cream', rose: 'Rose', cool: 'Slate', noir: 'Noir',
+  }
+  const themeOptions = [
+    { id: 'ivory', label: L.ivory },
+    { id: 'cream', label: L.cream },
+    { id: 'rose', label: L.rose },
+    { id: 'cool', label: L.cool },
+    { id: 'noir', label: L.noir },
+  ]
+  return (
+    <div style={{ padding: '8px 20px 30px' }}>
+      <SectionLabel text={L.settings} theme={theme}/>
+
+      <SettingRow label={L.language} theme={theme}>
+        <Pills
+          theme={theme}
+          value={prefs.lang}
+          options={[
+            { id: 'zh', label: '中文' },
+            { id: 'en', label: 'English' },
+          ]}
+          onChange={(v) => onUpdatePref({ lang: v })}
+        />
+      </SettingRow>
+
+      <SettingRow label={L.stubStyle} theme={theme}>
+        <Pills
+          theme={theme}
+          value={prefs.variant}
+          options={[
+            { id: 'classic', label: L.classic },
+            { id: 'bold', label: L.bold },
+            { id: 'minimal', label: L.minimal },
+          ]}
+          onChange={(v) => onUpdatePref({ variant: v })}
+        />
+      </SettingRow>
+
+      <SettingRow label={L.fontSet} theme={theme}>
+        <Pills
+          theme={theme}
+          value={prefs.fontStyle}
+          options={[
+            { id: 'editorial', label: L.editorial },
+            { id: 'sans', label: L.sans },
+            { id: 'typewriter', label: L.typewriter },
+          ]}
+          onChange={(v) => onUpdatePref({ fontStyle: v })}
+        />
+      </SettingRow>
+
+      <SettingRow label={L.palette} theme={theme}>
+        <Pills
+          theme={theme}
+          value={prefs.themeName}
+          options={themeOptions}
+          onChange={(v) => onUpdatePref({ themeName: v, customPaperBg: '' })}
+        />
+      </SettingRow>
+
+      <SettingRow label={L.stampInk} theme={theme}>
+        <ColorChip
+          theme={theme}
+          value={prefs.primaryStamp || baseTheme.stamp}
+          onChange={(v) => onUpdatePref({ primaryStamp: v })}
+        />
+      </SettingRow>
+
+      <SettingRow label={L.paperBg} theme={theme}>
+        <ColorChip
+          theme={theme}
+          value={prefs.customPaperBg || baseTheme.paperBg}
+          onChange={(v) => onUpdatePref({ customPaperBg: v })}
+        />
+      </SettingRow>
+
+      <button
+        onClick={onReset}
+        style={{
+          marginTop: 18, height: 40, width: '100%',
+          background: 'transparent', cursor: 'pointer',
+          border: `0.5px solid ${theme.paperLine}`,
+          borderRadius: 999, color: theme.paperFg,
+          fontFamily: FONTS.mono, fontSize: 11, letterSpacing: 1.5,
+          textTransform: 'uppercase',
+        }}
+      >{L.reset}</button>
+    </div>
+  )
+}
+
+function SettingRow({ label, theme, children }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '12px 0', borderBottom: `0.5px solid ${theme.paperLine}`,
+      gap: 12, flexWrap: 'wrap',
+    }}>
+      <div style={{
+        fontFamily: FONTS.mono, fontSize: 10, letterSpacing: 1.5,
+        color: theme.paperMuted, textTransform: 'uppercase',
+      }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function Pills({ theme, value, options, onChange }) {
+  return (
+    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+      {options.map((o) => {
+        const on = value === o.id
+        return (
+          <button key={o.id} onClick={() => onChange(o.id)} style={{
+            height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
+            border: `0.5px solid ${theme.paperLine}`,
+            background: on ? theme.paperFg : 'transparent',
+            color: on ? theme.paperBg : theme.paperFg,
+            fontFamily: FONTS.sans, fontSize: 12, fontWeight: 500,
+            whiteSpace: 'nowrap',
+          }}>{o.label}</button>
+        )
+      })}
+    </div>
+  )
+}
+
+function ColorChip({ theme, value, onChange }) {
+  return (
+    <label style={{
+      display: 'inline-flex', alignItems: 'center', gap: 8,
+      height: 28, padding: '0 4px 0 10px', borderRadius: 999,
+      border: `0.5px solid ${theme.paperLine}`,
+      cursor: 'pointer',
+    }}>
+      <span style={{
+        fontFamily: FONTS.mono, fontSize: 11, letterSpacing: 0.5,
+        color: theme.paperFg, textTransform: 'uppercase',
+      }}>{value}</span>
+      <span style={{
+        width: 22, height: 22, borderRadius: '50%',
+        background: value, position: 'relative', overflow: 'hidden',
+        boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.18)',
+      }}>
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            opacity: 0, cursor: 'pointer', border: 'none', padding: 0,
+          }}
+        />
+      </span>
+    </label>
   )
 }
 
